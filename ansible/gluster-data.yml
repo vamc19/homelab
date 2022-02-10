@@ -1,0 +1,44 @@
+---
+- hosts: cluster
+  become: yes
+  
+  vars:
+    volume_name: data
+    brick_dir: /home/ubuntu/gluster/data/brick0
+    mount_dir: /mnt/data
+    
+  tasks:
+    - name: Start glusterfs service
+      service:
+        name: glusterd
+        state: started
+  
+    - name: Create brick and mount directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0775
+        owner: ubuntu
+        group: ubuntu
+      with_items:
+        - "{{ brick_dir }}"
+        - "{{ mount_dir }}"
+
+    - name: Create gluster volume
+      gluster_volume:
+        state: present
+        name: "{{ volume_name }}"
+        brick: "{{ brick_dir }}"
+        cluster: "{{ groups.cluster | join(',') }}"
+        host: "{{ inventory_hostname }}"
+        force: yes
+      run_once: true
+
+    - name: Mount gluster volume
+      mount:
+        src: "{{ inventory_hostname }}:/{{ volume_name }}"
+        path: "{{ mount_dir }}"
+        fstype: glusterfs
+        opts: "defaults,_netdev"
+        state: mounted      
+        

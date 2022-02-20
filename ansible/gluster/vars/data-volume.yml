@@ -1,0 +1,6 @@
+---
+volume_name: data
+brick_dir: /home/ubuntu/gluster/data/brick0
+mount_dir: /mnt/data
+replicas: 0
+

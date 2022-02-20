@@ -1,0 +1,32 @@
+---
+- hosts: cluster
+  become: yes
+  
+  tasks:
+    - include_vars: "vars/{{ name }}-volume.yml"
+  
+    - name: Unmount gluster volume and remove from fstab
+      mount:
+        path: "{{ mount_dir }}"
+        state: absent
+
+    - name: Stop gluster volume
+      gluster_volume:
+        name: "{{ volume_name }}"
+        state: stopped
+      run_once: true
+
+    - name: Remove gluster volume
+      gluster_volume:
+        name: "{{ volume_name }}"
+        state: absent
+      run_once: true
+        
+    - name: Delete brick and mount directories
+      file:
+        path: "{{ item }}"
+        state: absent
+      with_items:
+        - "{{ brick_dir }}"
+        - "{{ mount_dir }}"
+

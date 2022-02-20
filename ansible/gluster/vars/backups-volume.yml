@@ -1,0 +1,6 @@
+---
+volume_name: backups
+brick_dir: /home/ubuntu/gluster/backups/brick0
+mount_dir: /mnt/backups
+replicas: 2
+

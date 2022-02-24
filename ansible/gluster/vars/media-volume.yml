@@ -1,0 +1,6 @@
+---
+volume_name: media
+brick_dir: /home/ubuntu/gluster/media/brick0
+mount_dir: /mnt/media
+replicas: 0
+

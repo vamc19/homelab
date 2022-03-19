@@ -1,0 +1,17 @@
+---
+- hosts: cluster
+  user: root
+
+  tasks:
+    - name: Open ports required for Consul
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled  
+      with_items:
+        - 8500/tcp
+        - 8600/udp
+        - 8600/tcp
+        - 8300/tcp
+        - 8301-8302/tcp
+        - 8301-8302/udp

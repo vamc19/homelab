@@ -1,0 +1,63 @@
+---
+- hosts: cluster
+  user: root
+
+  tasks:
+    - name: Set hostname
+      hostname:
+        name: "{{ inventory_hostname }}"
+        use: systemd
+        
+    - name: Create base user
+      user:
+        name: vamc
+        shell: /bin/bash
+        groups: wheel
+        state: present
+        password: "$6$MDsaAE/Q07IuQOf0$LPl8bT8vQpdULpnApN9CYrwYW3hjrKVmnQbT4KjGwN9KQ6.RaXZCoo9k4SarTjvAju5SEhRmIaFG7Sg/jF9.3/"
+        
+    - name: Copy public key
+      ansible.posix.authorized_key:
+        user: vamc
+        state: present
+        key: "{{ lookup('file', '~/.ssh/rpi-cluster.pub') }}"
+        
+    - name: Enable linger for user
+      shell:
+        cmd: loginctl enable-linger vamc
+
+    - name: Disable unused services
+      service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      with_items:
+        - "bluetooth"
+        - "wpa_supplicant"
+        - "zezere_ignition.timer"
+        - "zezere_ignition.service"
+        - "zezere_ignition_banner"
+        
+    - name: Update system
+      shell:
+        cmd: rpm-ostree update
+        
+    - name: Install extra packages
+      community.general.rpm_ostree_pkg:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - "unzip"
+        - "htop"
+        
+    - name: Reboot
+      reboot:
+        
+    - name: Enable required services
+      service:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      with_items:
+        - "podman"
+

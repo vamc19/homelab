@@ -1,0 +1,16 @@
+---
+- hosts: cluster
+  user: root
+    
+  tasks:
+    - name: Stop and disable Consul systemd service
+      service:
+        name: container-consul
+        state: stopped
+        enabled: no
+    
+    - name: Stop and remove Consul container
+      containers.podman.podman_container:
+        name: consul
+        state: absent
+

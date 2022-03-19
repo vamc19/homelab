@@ -1,0 +1,39 @@
+---
+
+# Consul will be started in a podman container. 
+# Starting and stopping the container will be managed by systemd.
+# sudo systemctl start/stop/status container-consul.service
+
+- hosts: cluster
+  user: root
+  
+  vars:
+    image: 'docker.io/library/consul'
+    version: '1.11.3'
+    data_center: 'homelab'
+    alt_domain: 'lan'
+    
+    server_cmd: "agent -bootstrap-expect=3"
+    client_cmd: 'agent'
+    
+  tasks:
+    - name: Create Consul Container
+      containers.podman.podman_container:
+        name: consul
+        state: created
+        image: "{{ image }}:{{ version }}"
+        network: host
+        detach: yes
+        env:
+          CONSUL_LOCAL_CONFIG: "{{ lookup('template', 'templates/config.json.j2', convert_data=True) | to_json }}"
+        command: "{{ server_cmd if (hostvars[inventory_hostname].consul_role == 'server') else client_cmd }}"
+        generate_systemd:
+          time: 60
+          path: "/etc/systemd/system/"
+          
+    - name: Enable and start Consul systemd service
+      service:
+        name: container-consul
+        enabled: yes
+        state: started
+

@@ -1,0 +1,34 @@
+{
+  'node_name': "{{ (inventory_hostname.split('.')[0]) }}",
+  
+  'datacenter': '{{ data_center }}',
+  
+  'server': {{ (hostvars[inventory_hostname].consul_role == 'server') | bool | to_json }},
+  
+  'alt_domain': '{{ alt_domain }}',
+  
+  'addresses': {
+    'http': '0.0.0.0'
+  },
+  
+  'ui_config': {
+    'enabled': true
+  },
+  
+  'retry_join': 
+  {% set join_servers = [] %}
+  {% for server in groups['cluster'] %}
+    {% if server != inventory_hostname %}
+      {% set consul_role = hostvars[server]['consul_role'] | default('client', true) %}
+      {% if consul_role == 'server' %}
+        {% set _ = join_servers.append(hostvars[server]['ansible_host']) %}
+      {% endif %}
+    {% endif %}
+  {% endfor %}
+  {{ join_servers | list | to_json }},
+  
+  'connect': {
+    'enabled': true
+  },
+}
+

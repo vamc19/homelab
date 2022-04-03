@@ -72,18 +72,9 @@
         enabled: yes
         # Service will be started eventually after configuration is created below
         
-    - name: Open ports required for Nomad
-      ansible.posix.firewalld:
-        port: "{{ item }}"
-        permanent: yes
-        state: enabled  
-        immediate: yes
-      with_items:
-        - 4646/tcp
-        - 4647/tcp
-        - 4648/tcp
-        - 4648/udp
-        
+- name: Open ports required for Nomad
+  import_playbook: firewall.yml
+
 - name: Create configuration file
   import_playbook: configuration.yml
 

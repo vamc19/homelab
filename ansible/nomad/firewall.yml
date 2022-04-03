@@ -1,0 +1,19 @@
+---
+
+- hosts: cluster
+
+  tasks:
+    - name: Open ports required for Nomad
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled  
+        immediate: yes
+      with_items:
+        - 4646/tcp
+        - 4647/tcp
+        - 4648/tcp
+        - 4648/udp
+        - 9998/tcp
+        - 9999/tcp
+

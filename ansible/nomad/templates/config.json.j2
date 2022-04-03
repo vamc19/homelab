@@ -1,0 +1,37 @@
+{
+  "bind_addr": "0.0.0.0",
+  
+  "data_dir": "{{ data_dir }}",
+  "plugin_dir": "{{ data_dir }}/plugins",
+  
+  "name": "{{ (inventory_hostname.split('.')[0]) }}",
+  
+  "datacenter": "{{ datacenter }}",
+  
+  {% if hostvars[inventory_hostname].nomad_role == 'server' %}
+  "server": {
+    "enabled": true,
+    "bootstrap_expect": 3,
+    "server_join": {
+      "retry_join": 
+      {% set join_servers = [] %}
+      {% for server in groups['cluster'] %}
+        {% if server != inventory_hostname %}
+          {% set nomad_role = hostvars[server]['nomad_role'] | default('client', true) %}
+          {% if nomad_role == 'server' %}
+            {% set _ = join_servers.append(hostvars[server]['ansible_host']) %}
+          {% endif %}
+        {% endif %}
+      {% endfor %}
+      {{ join_servers | list | to_json }},
+      "retry_max": 5,
+      "retry_interval": "15s",
+    },
+  },
+  {% endif %}
+  
+  "client": {
+    "enabled": true,
+  },
+}
+

@@ -1,5 +1,5 @@
 job "fabio" {
-  datacenters = ["dc1"]
+  datacenters = ["homelab"]
   type = "system"
 
   group "fabio" {
@@ -12,7 +12,7 @@ job "fabio" {
     task "fabio" {
       driver = "podman"
       config {
-        image = "docker://blmhemu/fabio"
+        image = "docker://blmhemu/fabio:1.5.15"
         network_mode = "host"
         ports = ["lb", "ui"]
       }

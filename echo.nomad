@@ -1,5 +1,5 @@
 job "echo" {
-  datacenters = ["dc1"]
+  datacenters = ["homelab"]
   type = "service"
 
   group "echo" {

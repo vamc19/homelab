@@ -1,0 +1,19 @@
+---
+
+- hosts: cluster
+
+  tasks:
+    - name: Include vars
+      include_vars:
+        file: vars.yml
+        
+    - name: Create configuration file
+      copy:
+        content: "{{ lookup('template', 'templates/config.json.j2') | to_nice_json }}"
+        dest: "{{ conf_dir }}/config.json"
+    
+    - name: Restart nomad
+      service:
+        name: nomad
+        state: restarted
+

@@ -1,0 +1,80 @@
+---
+
+# Nomad binary will be downloaded and moved to /usr/local/bin. 
+# Starting and stopping nomad will be managed by systemd.
+# sudo systemctl start/stop/status nomad.service
+# Since all nodes currently run as clients, nomad will run as root
+
+- hosts: cluster
+    
+  tasks:
+    - name: Include vars
+      include_vars:
+        file: vars.yml
+  
+    - name: Assign arch (arm64) 
+      set_fact:
+        arch: "arm64"
+      when:
+        - ansible_architecture == "aarch64"
+      
+    - name: Assign arch (amd64)
+      set_fact:
+        arch: "amd64"
+      when:
+        - ansible_architecture == "x86_64"
+    
+    - name: Create conf and data directories
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0775
+      with_items:
+        - "{{ conf_dir }}"
+        - "{{ data_dir }}"
+        - "{{ data_dir }}/plugins"
+        
+    - name: Download Nomad archive
+      get_url:
+        url: "https://releases.hashicorp.com/nomad/{{ nomad_version }}/nomad_{{ nomad_version }}_linux_{{ arch }}.zip"
+        dest: "/tmp/nomad.zip"
+        checksum: "sha256:https://releases.hashicorp.com/nomad/{{ nomad_version }}/nomad_{{ nomad_version }}_SHA256SUMS"
+    
+    - name: Unpack Nomad binary
+      unarchive:
+        src: /tmp/nomad.zip
+        dest: "{{ bin_dir }}"
+        remote_src: yes
+        mode: 'u=rwx,g=rx,o=rx'
+    
+    - name: Download Podman driver
+      get_url:
+        url: "https://releases.hashicorp.com/nomad-driver-podman/{{ podman_driver_version }}/nomad-driver-podman_{{ podman_driver_version }}_linux_{{ arch }}.zip"
+        dest: "/tmp/nomad-driver-podman.zip"
+        checksum: "sha256:https://releases.hashicorp.com/nomad-driver-podman/{{ podman_driver_version }}/nomad-driver-podman_{{ podman_driver_version }}_SHA256SUMS"
+        
+    - name: Unpack Podman driver binary
+      unarchive:
+        src: /tmp/nomad-driver-podman.zip
+        dest: "{{ data_dir }}/plugins"
+        remote_src: yes
+        mode: 'u=rwx,g=rx,o=rx'
+        
+    - name: Create systemd unit file
+      template:
+        src: 'templates/systemd.unit.j2'
+        dest: '/etc/systemd/system/nomad.service'
+        
+    - name: Enable nomad on boot
+      service:
+        name: nomad
+        daemon_reload: yes
+        enabled: yes
+        # Service will be started eventually after configuration is created below
+        
+- name: Open ports required for Nomad
+  import_playbook: firewall.yml
+
+- name: Create configuration file
+  import_playbook: configuration.yml
+

@@ -14,7 +14,7 @@
         shell: /bin/bash
         groups: wheel
         state: present
-        password: "$6$MDsaAE/Q07IuQOf0$LPl8bT8vQpdULpnApN9CYrwYW3hjrKVmnQbT4KjGwN9KQ6.RaXZCoo9k4SarTjvAju5SEhRmIaFG7Sg/jF9.3/"
+        password: "$6$16fiUHxHRJw7EDXJ$ZwNBrqpVWtgnCAgbc5BXYpVQMIgSKXHoqbFbqfucXYc55AD5GP2Fumip3UEiehm7eb5B64NWt.ZgBzbYgBm3E0"
         
     - name: Copy public key
       ansible.posix.authorized_key:

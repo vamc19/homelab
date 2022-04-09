@@ -1,16 +1,22 @@
 ---
-- hosts: cluster
-  user: root
+
+- name: Leave Cluster
+  shell:
+    cmd: podman exec consul consul leave
+
+- name: Stop and disable Consul systemd service
+  service:
+    name: container-consul
+    state: stopped
+    enabled: no
     
-  tasks:
-    - name: Stop and disable Consul systemd service
-      service:
-        name: container-consul
-        state: stopped
-        enabled: no
-    
-    - name: Stop and remove Consul container
-      containers.podman.podman_container:
-        name: consul
-        state: absent
+- name: Wait for service shutdown
+  wait_for:
+    port: 8500
+    state: stopped
+
+- name: Remove Consul container
+  containers.podman.podman_container:
+    name: consul
+    state: absent
 

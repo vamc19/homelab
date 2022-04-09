@@ -4,19 +4,31 @@
 # Starting and stopping the container will be managed by systemd.
 # sudo systemctl start/stop/status container-consul.service
 
+# To upgrade Consul run with -e serial=1
+
 - hosts: cluster
-  user: root
+  become: yes
+  serial: "{{ serial | default(4) }}"
   
   vars:
     image: 'docker.io/library/consul'
-    version: '1.11.3'
+    version: '1.11.4'
     data_center: 'homelab'
     alt_domain: 'lan'
     
     server_cmd: "agent -bootstrap-expect=3"
     client_cmd: 'agent'
-    
+
   tasks:
+    - name: Check if Consul is running
+      command: podman exec consul consul version
+      register: consul_running
+      ignore_errors: yes
+  
+    - name: Stop and teardown Consul if running
+      import_tasks: teardown.yml
+      when: consul_running is success
+      
     - name: Create Consul Container
       containers.podman.podman_container:
         name: consul
@@ -35,5 +47,10 @@
       service:
         name: container-consul
         enabled: yes
+        state: started
+        
+    - name: Wait for Consul to start
+      wait_for:
+        port: 8500
         state: started
 

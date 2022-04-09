@@ -1,4 +1,6 @@
 {
+  'bind_addr': "{{ hostvars[inventory_hostname]['ansible_host'] }}",
+  
   'node_name': "{{ (inventory_hostname.split('.')[0]) }}",
   
   'datacenter': '{{ data_center }}',

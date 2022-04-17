@@ -14,7 +14,7 @@
     image: 'docker.io/library/consul'
     version: '1.11.4'
     data_center: 'homelab'
-    alt_domain: 'lan'
+    alt_domain: 'homelab'
     
     server_cmd: "agent -bootstrap-expect=3"
     client_cmd: 'agent'

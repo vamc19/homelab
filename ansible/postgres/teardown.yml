@@ -1,0 +1,27 @@
+---
+
+- hosts: postgres
+  become: yes
+    
+  tasks:
+    - name: Stop and disable Consul systemd service
+      become_user: postgres
+      become: yes
+      ansible.builtin.systemd:
+        name: container-postgres
+        scope: user
+        state: stopped
+        enabled: no
+    
+    - name: Stop and remove Consul container
+      become_user: postgres
+      become: yes
+      containers.podman.podman_container:
+        name: postgres
+        state: absent
+        
+    - name: Delete content & directory
+      file:
+        state: absent
+        path: /home/postgres/data/
+

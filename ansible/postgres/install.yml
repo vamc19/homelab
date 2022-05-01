@@ -1,0 +1,86 @@
+---
+
+# Postgres will be started in a podman container. 
+# Starting and stopping the container will be managed by systemd.
+# sudo systemctl start/stop/status container-postgres.service
+
+- hosts: postgres
+  become: yes
+  
+  vars:
+    image: 'docker.io/library/postgres'
+    version: '14.2'
+    
+  tasks:
+    - name: Create postgres user
+      user:
+        name: postgres
+        system: yes
+        state: present
+        
+    - name: Enable linger for postgres user
+      shell:
+        cmd: loginctl enable-linger postgres
+        
+    # This should be in fedora-iot/bootstrap.yml. 
+    # Move it there when updating it the next time
+    - name: Update userns limit
+      ansible.posix.sysctl:
+        name: user.max_user_namespaces
+        value: '28633'
+        state: present
+        sysctl_file: /etc/sysctl.d/userns.conf
+        
+    - name: Add postgres user to subuid
+      ansible.builtin.lineinfile:
+        path: "{{ item }}"
+        regexp: '^postgres:'
+        line: "postgres:200000:65536"
+        state: present
+      with_items:
+        - "/etc/subuid"
+        - "/etc/subgid"
+        
+    - name: Create Postgres data directory
+      file:
+        path: "/home/postgres/data"
+        state: directory
+        owner: postgres
+        group: postgres
+        mode: "u=rwx,g=rx,o="
+
+    - name: Create Postgres Container
+      become_user: postgres
+      become: yes
+      containers.podman.podman_container:
+        name: postgres
+        state: created
+        image: "{{ image }}:{{ version }}"
+        network: host
+        detach: yes
+        userns: keep-id
+        volume: "/home/postgres/data:/var/lib/postgresql/data:Z"
+        env:
+          POSTGRES_PASSWORD: ""
+        generate_systemd:
+          time: 60
+          path: "/home/postgres/.config/systemd/user/"
+    
+    - name: Enable and start postgres systemd service
+      become_user: postgres
+      become: yes
+      ansible.builtin.systemd:
+        name: container-postgres
+        daemon_reload: yes
+        enabled: yes
+        state: started
+        scope: user
+
+    - name: Open ports required for postgres
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        state: enabled  
+      with_items:
+        - 5432/tcp
+

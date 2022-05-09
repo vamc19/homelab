@@ -2,7 +2,7 @@
 
 # Postgres will be started in a podman container. 
 # Starting and stopping the container will be managed by systemd.
-# sudo systemctl start/stop/status container-postgres.service
+# sudo systemctl --user --machine=postgres@.host start/stop/status container-postgres.service
 
 - hosts: postgres
   become: yes
@@ -83,4 +83,10 @@
         state: enabled  
       with_items:
         - 5432/tcp
+
+    - name: Register service in Consul
+      ansible.builtin.uri:
+        url: "http://localhost:8500/v1/agent/service/register"
+        method: PUT
+        body: "{{ lookup('template', 'templates/register-consul.json.j2', convert_data=True) | to_json }}"
 

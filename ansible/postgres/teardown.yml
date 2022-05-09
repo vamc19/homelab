@@ -4,6 +4,12 @@
   become: yes
     
   tasks:
+    - name: Deregister service in Consul
+      ansible.builtin.uri:
+        url: "http://localhost:8500/v1/agent/service/deregister/postgres-{{ (inventory_hostname.split('.')[0]) }}"
+        method: PUT
+      ignore_errors: yes
+  
     - name: Stop and disable Consul systemd service
       become_user: postgres
       become: yes
@@ -20,8 +26,11 @@
         name: postgres
         state: absent
         
-    - name: Delete content & directory
+    - name: Delete data directory and systemd unit file
       file:
         state: absent
-        path: /home/postgres/data/
+        path: "{{ item }}"
+      with_items:
+        - "/home/postgres/data/"
+        - "/home/postgres/.config/systemd/user/container-postgres.service"
 

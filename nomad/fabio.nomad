@@ -12,7 +12,7 @@ job "fabio" {
     task "fabio" {
       driver = "podman"
       config {
-        image = "docker://blmhemu/fabio:1.5.15"
+        image = "docker://blmhemu/fabio:latest"
         network_mode = "host"
         ports = ["lb", "ui"]
       }

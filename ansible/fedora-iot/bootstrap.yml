@@ -37,6 +37,13 @@
         - "zezere_ignition.timer"
         - "zezere_ignition.service"
         - "zezere_ignition_banner"
+
+    - name: Update userns limit
+      ansible.posix.sysctl:
+        name: user.max_user_namespaces
+        value: '28633'
+        state: present
+        sysctl_file: /etc/sysctl.d/userns.conf
         
     - name: Update system
       shell:

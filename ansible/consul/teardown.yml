@@ -1,14 +1,19 @@
 ---
 
 - name: Leave Cluster
+  become_user: consul
+  become: yes
   shell:
     cmd: podman exec consul consul leave
 
 - name: Stop and disable Consul systemd service
+  become_user: consul
+  become: yes
   service:
     name: container-consul
     state: stopped
     enabled: no
+    scope: user
     
 - name: Wait for service shutdown
   wait_for:
@@ -16,7 +21,14 @@
     state: stopped
 
 - name: Remove Consul container
+  become_user: consul
+  become: yes
   containers.podman.podman_container:
     name: consul
     state: absent
+    
+- name: Remove systemd unit file
+  file:
+    state: absent
+    path: "/home/consul/.config/systemd/user/container-consul.service"
 

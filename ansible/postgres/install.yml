@@ -4,6 +4,9 @@
 # Starting and stopping the container will be managed by systemd.
 # sudo systemctl --user --machine=postgres@.host start/stop/status container-postgres.service
 
+# To only register postgres in consul, run ansible-playbook with tag "register"
+# ansible-playbook postgres/install.yml --tags "register"
+
 - hosts: postgres
   become: yes
   
@@ -80,4 +83,6 @@
         url: "http://localhost:8500/v1/agent/service/register"
         method: PUT
         body: "{{ lookup('template', 'templates/register-consul.json.j2', convert_data=True) | to_json }}"
+      tags:
+        - register
 

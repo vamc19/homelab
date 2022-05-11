@@ -21,6 +21,11 @@ job "echo" {
           ":${NOMAD_PORT_http}"
         ]
       }
+      
+      resources {
+        cpu    = 50
+        memory = 64
+      }
     }
     
     service {

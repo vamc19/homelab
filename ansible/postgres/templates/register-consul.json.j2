@@ -4,7 +4,7 @@
   'port': 5432,
   'check': {
     'name': 'Postgres port check',
-    'tcp': 'localhost:5432',
+    'tcp': "{{ inventory_hostname }}:5432",
     'interval': '10s',
     'timeout': '2s',
   },

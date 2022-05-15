@@ -9,6 +9,8 @@
         url: "http://localhost:8500/v1/agent/service/deregister/postgres-{{ (inventory_hostname.split('.')[0]) }}"
         method: PUT
       ignore_errors: yes
+      tags:
+        - deregister
   
     - name: Stop and disable Consul systemd service
       become_user: postgres

@@ -1,24 +1,23 @@
-job "echo" {
+job "dume" {
   datacenters = ["homelab"]
   type = "service"
 
-  group "echo" {
+  group "dume" {
     count = 1
     network {
-      mode = "host"
       port "http" {}
     }
     
-    task "echo-server" {
+    task "dume-server" {
       driver = "podman"
       config {
-        image = "docker://jxlwqq/http-echo"
+        image = "docker://ghcr.io/vamc19/dum-e:0.1.0"
         ports = ["http"]
         args = [
-          "--text",
-          "Hello, welcome to ${NOMAD_IP_http} running on port ${NOMAD_PORT_http}",
-          "--addr",
-          ":${NOMAD_PORT_http}"
+          "--host",
+          "0.0.0.0",
+          "--port",
+          "${NOMAD_PORT_http}"
         ]
       }
       
@@ -29,10 +28,10 @@ job "echo" {
     }
     
     service {
-      name = "http-echo"
+      name = "dume"
       port = "http"
       tags = [
-        "urlprefix-/echo strip=/echo",
+        "urlprefix-/dume strip=/dume",
       ]
       check {
         type = "http"
@@ -43,3 +42,4 @@ job "echo" {
     }
   }
 }
+

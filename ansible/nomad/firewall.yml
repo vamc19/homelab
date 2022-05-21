@@ -1,6 +1,7 @@
 ---
 
 - hosts: cluster
+  become: yes
 
   tasks:
     - name: Open ports required for Nomad
@@ -14,6 +15,7 @@
         - 4647/tcp
         - 4648/tcp
         - 4648/udp
+        - 80/tcp
+        - 80/udp
         - 9998/tcp
-        - 9999/tcp
 

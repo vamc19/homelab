@@ -71,6 +71,20 @@
         generate_systemd:
           time: 60
           path: "/home/consul/.config/systemd/user/"
+          
+    - name: Open ports required for Consul
+      ansible.posix.firewalld:
+        port: "{{ item }}"
+        permanent: yes
+        immediate: yes
+        state: enabled  
+      with_items:
+        - 8500/tcp
+        - 8600/udp
+        - 8600/tcp
+        - 8300/tcp
+        - 8301-8302/tcp
+        - 8301-8302/udp
 
     - name: Enable and start Consul systemd service
       become_user: consul
